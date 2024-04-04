@@ -1,0 +1,97 @@
+﻿@using Lab6.Models
+@page "/BorrowBook"
+@inject IBookService BookService
+@inject IUserService UserService
+@inject IJSRuntime JSRuntime
+
+<h3>Borrow Book</h3>
+
+
+<h4>Available Books</h4>
+@if (books != null && books.Any())
+{
+    <ul>
+        @foreach (var book in books)
+        {
+            <li>@book.Title by @book.Author (ISBN: @book.ISBN) - <button @onclick="() => Borrow(book.Id)">Borrow</button></li>
+        }
+    </ul>
+}
+else
+{
+    <p>No available books.</p>
+}
+
+
+
+@code {
+    List<Book> books = new List<Book>();
+    List<User> users = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooksAndUsers();
+        users ??= new List<User>();
+
+    }
+
+    async Task LoadBooksAndUsers()
+    {
+        // Load books and users from the service
+        books = await BookService.GetBooks();
+        users = await UserService.GetUsers(new List<User>());
+    }
+    async Task Borrow(int bookId)
+    {
+        // Prompt the user to enter the email of the user who is borrowing the book
+        string userEmail = await JSRuntime.InvokeAsync<string>("prompt", "Enter user email:");
+
+        if (string.IsNullOrWhiteSpace(userEmail))
+        {
+            // User canceled or entered invalid input
+            ShowMessage("Invalid input!");
+            return;
+        }
+
+        // Find the book to borrow
+        Book book = books.FirstOrDefault(b => b.Id == bookId);
+        if (book == null)
+        {
+            // Book not found
+            ShowMessage("Book not found or no available copies!");
+            return;
+        }
+
+        // Find the user who is borrowing the book by email
+        User user = users.FirstOrDefault(u => u.Email == userEmail);
+        if (user == null)
+        {
+            // User not found
+            ShowMessage("User not found!");
+            return;
+        }
+
+        // Borrow the book
+        try
+        {
+            await BookService.BorrowBook(book.Id, userEmail);
+            ShowMessage("Book borrowed successfully!");
+        }
+        catch (ArgumentException ex)
+        {
+            ShowMessage(ex.Message);
+        }
+
+        // Update the list of books and users
+        await LoadBooksAndUsers();
+    }
+
+    void ShowMessage(string message)
+    {
+
+        JSRuntime.InvokeVoidAsync("alert", message);
+    }
+
+
+
+}

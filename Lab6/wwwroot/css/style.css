@@ -1,0 +1,33 @@
+﻿using System;
+namespace Lab6.wwwroot.css
+/* styles.css */
+/* Global styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: grey;
+}
+
+/* Heading styles */
+h1 {
+    color: black;
+}
+
+/* Navigation styles */
+ul {
+    list-style-type: none;
+    padding: 20px;
+    
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+    a:hover {
+        color: #0056b3;
+    }
